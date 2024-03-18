@@ -1,92 +1,139 @@
 ﻿using System;
 using System.Collections.Generic;
 
-class Program
+namespace lab1
 {
-    static double FindRoot(Func<double, double> function, double x0, double x1, double epsilon)
+    class Program
     {
-        double x = x1;
-        double xPrevious = x0;
-        double fx = function(x);
-        double fxPrevious = function(xPrevious);
-
-        while (Math.Abs(x - xPrevious) > epsilon)
+        const double eps = 0.001;
+        public static int numberFunction = 0;
+        
+        public static double fx(double x)  //рівняння
         {
-            double tempX = x;
-            x = x - fx * (x - xPrevious) / (fx - fxPrevious);
-            xPrevious = tempX;
-            fxPrevious = fx;
-            fx = function(x);
-        }
-
-        return x;
-    }
-    static List<double> FindRootsOnInterval(Func<double, double> function, double start, double end, int numberOfParts, double epsilon)
-    {
-        if (epsilon <= 0)
-        {
-            throw new ArgumentException("Епсилон повинен бути більшим за 0.");
-        }
-
-        if (end <= start)
-        {
-            throw new ArgumentException("Кінець має бути більшим за початок.");
-        }
-
-        if (numberOfParts <= 0)
-        {
-            throw new ArgumentException("Кількість частин має бути більшою за 0");
-        }
-
-        List<double> roots = new List<double>();
-        double h = (end - start) / numberOfParts;
-
-        for (int i = 0; i < numberOfParts; i++)
-        {
-            double x1 = start + i * h;
-            double x2 = x1 + h;
-            double y1 = function(x1);
-            double y2 = function(x2);
-
-            if (y1 * y2 <= 0)
+            switch (Program.numberFunction - 1)
             {
-                double root = FindRoot(function, x1, x2, epsilon);
-                roots.Add(root);
+                case 0:
+                    return Math.Cos(Math.Sin(x * x * x)) - 0.7; ;
+                case 1:
+                    return x * x - 2 * x - 4;
+                case 2:
+                    return Math.Sin(x * x * x) / 5;
+                case 3:
+                    return (Math.Pow(x, 4) - 1) / Math.Pow(x, 3);
+                case 4:
+                    return x * x * Math.Cos(x) - 0.2;
+                case 5:
+                    return 1.5 - Math.Pow(x, 1 - Math.Cos(x));
+                case 6:
+                    return x * x * x - Math.Pow(3, x) + 1.5;
+                case 7:
+                    return Math.Cos(x * x - x + 1);
+                case 8:
+                    return Math.Exp(x) - Math.Sin(2 * x) - 1;
+                case 9:
+                    return (x * x * x - 7 * x + 1) / 3;
+                case 10:
+                    return Math.Cos(x * x) - 0.5;
+                case 11:
+                    return Math.Sin(x) - Math.Cos(x * x * x);
+                case 12:
+                    return Math.Sin(2 * x) + Math.Cos(2 * x);
+                default:
+                    return Math.Sin(2 * x) + Math.Cos(2 * x);
+            }
+        }
+        public static List<double> VyzovFunction(double accuracy) //проміжки
+        {
+            switch (numberFunction - 1)
+            {
+                case 0:
+                    return SecantMethodInterval(-(Math.PI / 2), Math.PI / 2);
+                case 1:
+                    return SecantMethodInterval(-4, 4);
+                case 2:
+                    return SecantMethodInterval(-2.5, 2.5);
+                case 3:
+                    return SecantMethodInterval(-10, 10);
+                case 4:
+                    return SecantMethodInterval(-(2 * Math.PI), 2 * Math.PI);
+                case 5:
+                    return SecantMethodInterval(0, 5 * Math.PI);
+                case 6:
+                    return SecantMethodInterval(-5, 5);
+                case 7:
+                    return SecantMethodInterval(-3, 3);
+                case 8:
+                    return SecantMethodInterval(-6, 6);
+                case 9:
+                    return SecantMethodInterval(-6, 6);
+                case 10:
+                    return SecantMethodInterval(-4, 4);
+                case 11:
+                    return SecantMethodInterval(-2, 2);
+                default: return new List<double> { 0.0 };
             }
         }
 
-        if (roots.Count == 0)
+        public static List<double> SecantMethodInterval(double a, double b)
         {
-            if (function(start) == 0)
-                roots.Add(start);
-            if (function(end) == 0)
-                roots.Add(end);
+            List<double> result = new List<double>();
+            List<double> intervals = new List<double>();
+            double c = (double)(Math.Abs(a - b) / 1000); //крок
+
+            for (double i = a; i <= b; i += c)
+            {
+                intervals.Add(i); //додаємо кожен знайдений Х
+            }
+
+            for (int i = 0; i < intervals.Count - 1; i++)
+            {
+                if (fx(intervals[i]) * fx(intervals[i + 1]) < 0) //перевіряємо, чи змінився знак
+                {
+                    result.Add(SecantMethod(intervals[i], intervals[i + 1], c)); 
+                }
+            }
+            return result;
+        } 
+        static double SecantMethod(double x0, double x1, double h)
+        {
+            List<double> interval = new List<double>();
+            double H = h * 0.001; //новий крок
+
+            for (double j = x0; j <= x1; j += H)
+            {
+                interval.Add(j); //додаємо кожен новий знайдений Х
+            }
+            double x2;
+            int l;
+            do
+            { //перевіряємо кожен Х за формулою
+                for (l = 0;  l < interval.Count - 1; l++) 
+                {
+                    x2 = interval[l + 1] -
+                        (fx(interval[l + 1]) * (interval[l + 1] - interval[l])) /
+                        (fx(interval[l + 1]) - fx(interval[l]));
+                    x0 = x1;
+                    x1 = x2;
+                    l++;
+                }
+            } while (Math.Abs(x1 - x0) <= eps && l < 1000); //первірка виходу
+
+            return x1;
         }
 
-        if (roots.Count == 0 && numberOfParts > 1)
+
+        static void Main(string[] args)
         {
-            List<double> roots1 = FindRootsOnInterval(function, start, (start + end) / 2, numberOfParts / 2, epsilon);
-            List<double> roots2 = FindRootsOnInterval(function, (start + end) / 2, end, numberOfParts / 2, epsilon);
-            roots.AddRange(roots1);
-            roots.AddRange(roots2);
-        }
-
-        return roots;
-    }
-    static void Main(string[] args)
-    {
-        double startOfRange = -4;
-        double endOfRange = 4;
-        int maxNumberOfParts = 10;
-        double epsilon = 0.001;
-        Func<double, double> function = x => x * x - 2 * x - 4;
-
-        List<double> roots = FindRootsOnInterval(function, startOfRange, endOfRange, maxNumberOfParts, epsilon);
-
-        Console.WriteLine("Корені:");
-        foreach (double root in roots)
-        {
-            Console.WriteLine(root);
+            Program.numberFunction = 2;
+            double accuracy = 3000;
+            var result = VyzovFunction(accuracy);
+            for (int i = 0; i < result.Count; i++)
+            {
+                Console.Write($"X{i + 1} = ");
+                Console.WriteLine($"{result[i]}");
+            }
+            Console.ReadKey();
         }
     }
 }
+
